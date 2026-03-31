@@ -42,24 +42,58 @@ export const VennDiagram: React.FC<VennDiagramProps> = ({ data, noneCount }) => 
     const div = d3.select(chartRef.current);
     div.datum(data).call(chart);
 
+    // Add drop shadow filter definition
+    const defs = div.select("svg").append("defs");
+    const filter = defs.append("filter")
+      .attr("id", "drop-shadow")
+      .attr("height", "130%");
+    filter.append("feDropShadow")
+      .attr("dx", "0")
+      .attr("dy", "8")
+      .attr("stdDeviation", "8")
+      .attr("flood-color", "#0f172a")
+      .attr("flood-opacity", "0.15");
+
+    // Add gradients
+    const gradMath = defs.append("linearGradient").attr("id", "grad-math").attr("x1", "0%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%");
+    gradMath.append("stop").attr("offset", "0%").style("stop-color", "#60a5fa"); // blue-400
+    gradMath.append("stop").attr("offset", "100%").style("stop-color", "#2563eb"); // blue-600
+
+    const gradLit = defs.append("linearGradient").attr("id", "grad-lit").attr("x1", "0%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%");
+    gradLit.append("stop").attr("offset", "0%").style("stop-color", "#fb7185"); // rose-400
+    gradLit.append("stop").attr("offset", "100%").style("stop-color", "#e11d48"); // rose-600
+
+    const gradEng = defs.append("linearGradient").attr("id", "grad-eng").attr("x1", "0%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%");
+    gradEng.append("stop").attr("offset", "0%").style("stop-color", "#34d399"); // emerald-400
+    gradEng.append("stop").attr("offset", "100%").style("stop-color", "#059669"); // emerald-600
+
+    const gradientMap: Record<string, string> = {
+      'Toán': 'url(#grad-math)',
+      'Văn': 'url(#grad-lit)',
+      'Anh': 'url(#grad-eng)',
+    };
+
     // Apply custom colors and blend modes
     div.selectAll("g")
       .each(function(d: any) {
         const node = d3.select(this);
         if (d.sets.length === 1) {
-          const color = colorMap[d.sets[0]];
+          const color = gradientMap[d.sets[0]] || colorMap[d.sets[0]];
           if (color) {
             node.select("path")
               .style("fill", color)
-              .style("mix-blend-mode", "multiply");
+              .style("fill-opacity", 0.7)
+              .style("mix-blend-mode", "multiply")
+              .style("filter", "url(#drop-shadow)");
           }
         }
       });
 
     // Style the text and handle multiline labels
     div.selectAll("text")
-      .style("fill", "#1e293b") // slate-800
+      .style("fill", "#ffffff") 
       .style("font-family", "Inter, sans-serif")
+      .style("text-shadow", "0px 2px 4px rgba(0,0,0,0.3)")
       .each(function(d: any) {
         const textNode = d3.select(this);
         const label = d.label || "";
@@ -71,15 +105,15 @@ export const VennDiagram: React.FC<VennDiagramProps> = ({ data, noneCount }) => 
               .attr("x", textNode.attr("x") || 0)
               .attr("dy", i === 0 ? "-0.2em" : "1.2em")
               .text(line)
-              .style("font-size", i === 1 ? "22px" : "14px")
-              .style("font-weight", i === 1 ? "900" : "600")
-              .style("fill", i === 1 ? "#0f172a" : "#475569");
+              .style("font-size", i === 1 ? "26px" : "16px")
+              .style("font-weight", i === 1 ? "900" : "700")
+              .style("fill", "#ffffff");
           });
         } else {
           textNode
-            .style("font-size", d.sets.length > 1 ? "20px" : "14px")
-            .style("font-weight", d.sets.length > 1 ? "900" : "600")
-            .style("fill", d.sets.length > 1 ? "#0f172a" : "#475569");
+            .style("font-size", d.sets.length > 1 ? "24px" : "16px")
+            .style("font-weight", d.sets.length > 1 ? "900" : "700")
+            .style("fill", "#ffffff");
         }
       });
 
@@ -115,17 +149,17 @@ export const VennDiagram: React.FC<VennDiagramProps> = ({ data, noneCount }) => 
         
         let tooltipText = "";
         if (d.sets.length === 1) {
-          tooltipText = `<div style="color: #cbd5e1; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Tổng thích ${d.sets[0]}</div><div style="font-size: 24px; font-weight: 800;">${d.size}</div>`;
+          tooltipText = `<div style="color: #cbd5e1; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Tổng số học sinh thích ${d.sets[0]}</div><div style="font-size: 28px; font-weight: 900; color: #fff;">${d.size}</div>`;
         } else {
-          tooltipText = `<div style="color: #cbd5e1; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Thích ${d.sets.join(' & ')}</div><div style="font-size: 24px; font-weight: 800;">${d.size}</div>`;
+          tooltipText = `<div style="color: #cbd5e1; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Thích cả ${d.sets.join(' & ')}</div><div style="font-size: 28px; font-weight: 900; color: #fff;">${d.size}</div>`;
         }
         tooltip.html(tooltipText);
 
         const selection = d3.select(this).transition("tooltip").duration(200);
         selection.select("path")
-          .style("stroke", "#fff")
-          .style("stroke-width", 3)
-          .style("fill-opacity", d.sets.length === 1 ? .6 : .3)
+          .style("stroke", "#ffffff")
+          .style("stroke-width", 4)
+          .style("fill-opacity", d.sets.length === 1 ? 0.9 : 0.5)
           .style("stroke-opacity", 1);
       })
       .on("mousemove", function (event) {
@@ -137,7 +171,7 @@ export const VennDiagram: React.FC<VennDiagramProps> = ({ data, noneCount }) => 
         const selection = d3.select(this).transition("tooltip").duration(200);
         selection.select("path")
           .style("stroke-width", 0)
-          .style("fill-opacity", d.sets.length === 1 ? .25 : .0)
+          .style("fill-opacity", d.sets.length === 1 ? 0.7 : 0.0)
           .style("stroke-opacity", 0);
       });
 

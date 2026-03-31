@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "Submission": {
+      "title": "Submission",
+      "description": "A user's subject preferences.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the student."
+        },
+        "math": {
+          "type": "boolean",
+          "description": "Whether the user likes Math."
+        },
+        "lit": {
+          "type": "boolean",
+          "description": "Whether the user likes Literature."
+        },
+        "eng": {
+          "type": "boolean",
+          "description": "Whether the user likes English."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the submission was made."
+        }
+      },
+      "required": ["name", "math", "lit", "eng", "timestamp"]
+    }
+  },
+  "firestore": {
+    "submissions/{submissionId}": {
+      "schema": {
+        "$ref": "#/entities/Submission"
+      },
+      "description": "Stores user submissions for subject preferences. Document ID is a locally generated random ID."
+    }
+  }
+}

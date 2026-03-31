@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: submissions
+    // Document ID: {submissionId} (random UUID)
+    // Fields:
+    //   - name: string (required) - The name of the student.
+    //   - math: boolean (required) - Whether the user likes Math.
+    //   - lit: boolean (required) - Whether the user likes Literature.
+    //   - eng: boolean (required) - Whether the user likes English.
+    //   - timestamp: string (required) - When the submission was made.
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidSubmission() {
+      return hasRequiredFields(['name', 'math', 'lit', 'eng', 'timestamp']) &&
+             hasOnlyAllowedFields(['name', 'math', 'lit', 'eng', 'timestamp']) &&
+             request.resource.data.name is string &&
+             request.resource.data.name.size() > 0 &&
+             request.resource.data.name.size() <= 100 &&
+             request.resource.data.math is bool &&
+             request.resource.data.lit is bool &&
+             request.resource.data.eng is bool &&
+             request.resource.data.timestamp is string;
+    }
+
+    match /submissions/{submissionId} {
+      // Teachers can list all submissions to see the chart
+      allow list: if request.auth != null;
+      // Anyone can read a specific submission (needed for students to see their own)
+      allow get: if true;
+      
+      // Allow unauthenticated submissions but validate data
+      allow create: if isValidSubmission();
+      allow update: if isValidSubmission();
+      allow delete: if true;
+    }
+  }
+}
