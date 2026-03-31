@@ -1,0 +1,5 @@
+{
+  "name": "Khảo sát sở thích môn học",
+  "description": "Ứng dụng khảo sát sở thích học Toán, Văn, Anh của học sinh và hiển thị biểu đồ Venn trực quan.",
+  "requestFramePermissions": []
+}
